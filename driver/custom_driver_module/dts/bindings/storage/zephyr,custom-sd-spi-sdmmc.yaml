@@ -1,0 +1,72 @@
+# Custom SD SPI SDMMC Driver Device Tree Binding
+#
+# Copyright (c) 2024, Custom Driver Module
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Custom SD/MMC Card driver over SPI interface.
+  Supports standard SD 2.0 protocol with SPI mode communication.
+  Compatible with SDHC cards up to 32GB capacity.
+
+compatible: "zephyr,custom-sd-spi-sdmmc"
+
+include: [spi-device.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  spi-max-frequency:
+    type: int
+    required: true
+    description: |
+      Maximum SPI clock frequency in Hz.
+      Standard SD cards support up to 25MHz in SPI mode.
+
+  cs-gpios:
+    type: phandle-array
+    description: |
+      Chip select GPIO.
+
+  cd-gpios:
+    type: phandle-array
+    description: |
+      Card detect GPIO. Active low when card is present.
+
+  wp-gpios:
+    type: phandle-array
+    description: |
+      Write protect GPIO.
+
+  power-gpios:
+    type: phandle-array
+    description: |
+      Power enable GPIO for controlling SD card power supply.
+      Useful for low-power applications to disable SD card when not in use.
+
+  mmc-hs200-1_8v:
+    type: boolean
+    description: |
+      Enable high speed mode.
+
+  no-mmc:
+    type: boolean
+    default: true
+    description: |
+      Disable MMC card support.
+
+  no-sdio:
+    type: boolean
+    default: true
+    description: |
+      Disable SDIO mode support.
+
+  max-block-count:
+    type: int
+    default: 32767
+    description: |
+      Maximum number of blocks in a single read/write operation.
+
+child-binding:
+  description: |
+    SD card node may have a child node for partition information.

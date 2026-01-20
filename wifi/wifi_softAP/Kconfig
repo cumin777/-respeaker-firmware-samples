@@ -1,0 +1,77 @@
+# SPDX-License-Identifier: Apache-2.0
+
+menu "reSpeaker Wi-Fi SoftAP sample"
+endmenu
+
+source "Kconfig.zephyr"
+
+config RESPEAKER_WIFI_SOFTAP_SSID
+	string "SoftAP SSID"
+	default "reSpeaker-AP"
+	help
+	  SSID advertised by the SoftAP.
+
+config RESPEAKER_WIFI_SOFTAP_PASSWORD
+	string "SoftAP password (WPA2-PSK)"
+	default ""
+	help
+	  Leave empty for an open network.
+
+config RESPEAKER_WIFI_SOFTAP_BAND_5_GHZ
+	bool "Use 5 GHz band (if supported)"
+	default n
+	help
+	  Select 5 GHz. If disabled, 2.4 GHz is used.
+
+config RESPEAKER_WIFI_SOFTAP_CHANNEL
+	int "SoftAP channel"
+	default 6
+	range 1 165
+	help
+	  Wi-Fi channel. Valid range depends on the selected band and regulatory
+	  domain. The sample also validates the band/channel at runtime.
+
+config RESPEAKER_WIFI_SOFTAP_REG_DOMAIN
+	string "Regulatory domain (2-letter country code)"
+	default "US"
+	help
+	  Two-letter ISO country code used for Wi-Fi regulatory settings.
+	  Example: US, CN, JP, DE.
+
+config RESPEAKER_WIFI_SOFTAP_DHCPV4_POOL_START
+	string "DHCPv4 pool start address"
+	default "192.168.4.100"
+	help
+	  First IPv4 address to hand out via the DHCPv4 server.
+
+config RESPEAKER_WIFI_SOFTAP_MAX_STATIONS
+	int "Max stations tracked"
+	default 8
+	range 1 32
+	help
+	  Max number of connected stations tracked for logging/idle heuristics.
+
+config RESPEAKER_WIFI_SOFTAP_AUTO_DISABLE_IDLE
+	bool "Auto-disable SoftAP when idle"
+	default y
+	help
+	  When enabled, the sample automatically disables the SoftAP if no
+	  stations are connected for the configured idle timeout.
+
+config RESPEAKER_WIFI_SOFTAP_IDLE_TIMEOUT_SEC
+	int "Idle timeout (seconds)"
+	default 300
+	range 30 86400
+	depends on RESPEAKER_WIFI_SOFTAP_AUTO_DISABLE_IDLE
+	help
+	  If no station is connected for this many seconds, the sample disables
+	  SoftAP and stops the DHCP server.
+
+config RESPEAKER_WIFI_SOFTAP_IDLE_CHECK_PERIOD_SEC
+	int "Idle check period (seconds)"
+	default 5
+	range 1 3600
+	depends on RESPEAKER_WIFI_SOFTAP_AUTO_DISABLE_IDLE
+	help
+	  How often the sample checks whether SoftAP has been idle.
+

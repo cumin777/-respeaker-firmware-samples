@@ -1,0 +1,3 @@
+# Add subdirectories
+add_subdirectory_ifdef(CONFIG_CUSTOM_OLED_DISPLAY_128X64 display)
+add_subdirectory_ifdef(CONFIG_CUSTOM_SD_SPI_SDMMC storage)

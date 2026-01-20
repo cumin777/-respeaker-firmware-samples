@@ -1,0 +1,97 @@
+/*
+ * Custom SD SPI SDMMC Driver Device Tree Overlay Example
+ *
+ * Copyright (c) 2024, Custom Driver Module
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * This overlay demonstrates how to configure the custom SD card driver
+ * for nRF5340 with SPI interface.
+ */
+
+/*
+ * SPI configuration for SD card
+ * Adjust SPI instance and pins according to your board
+ */
+&spi1 {
+	compatible = "nordic,nrf-spim";
+	status = "okay";
+
+	/* pinctrl configuration needs to be defined in board DTS */
+	pinctrl-0 = <&spi1_default>;
+	pinctrl-1 = <&spi1_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	/*
+	 * SD Card on SPI1
+	 *
+	 * Pin mapping (example for nRF5340):
+	 *   CS  - GPIO 1.10 (P1.10)
+	 *   SCK - GPIO 1.15 (P1.15)
+	 *   MOSI- GPIO 1.13 (P1.13)
+	 *   MISO- GPIO 1.14 (P1.14)
+	 *   CD  - GPIO 1.05 (P1.05)
+	 *   WP  - GPIO 1.06 (P1.06)
+	 *   PWR - GPIO 1.07 (P1.07)
+	 */
+	sd_spi_sdmmc: sd-card@0 {
+		compatible = "zephyr,custom-sd-spi-sdmmc";
+		reg = <0>;
+
+		/* SPI configuration */
+		spi-max-frequency = <25000000>;  /* 25MHz - full speed */
+
+		/* GPIO configurations */
+		cs-gpios = <&gpio1 10 GPIO_ACTIVE_LOW>;      /* Chip select */
+		cd-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;      /* Card detect */
+		wp-gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;      /* Write protect */
+		power-gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;   /* Power control */
+
+		/* SD card configuration */
+		no-mmc;                /* Disable MMC support */
+		no-sdio;               /* Disable SDIO mode */
+		mmc-hs200-1_8v;      /* Enable high speed mode */
+
+		/* Performance tuning */
+		max-block-count = <32767>;  /* Maximum blocks in one transfer */
+
+		status = "okay";
+	};
+};
+
+/*
+ * Pin control configuration (example)
+ * This should be adjusted based on your board's pin assignment
+ */
+&pinctrl {
+	spi1_default: spi1_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_MOSI, 1, 13)>,
+				<NRF_PSEL(SPIM_MISO, 1, 14)>,
+				<NRF_PSEL(SPIM_SCK, 1, 15)>;
+			bias-pull-up;
+		};
+		group2 {
+			psels = <NRF_PSEL(SPIM_CS, 1, 10)>;
+			bias-pull-up;
+			low-power-enable;
+		};
+	};
+
+	spi1_sleep: spi1_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_MOSI, 1, 13)>,
+				<NRF_PSEL(SPIM_MISO, 1, 14)>,
+				<NRF_PSEL(SPIM_SCK, 1, 15)>,
+				<NRF_PSEL(SPIM_CS, 1, 10)>;
+			bias-pull-up;
+			low-power-enable;
+		};
+	};
+};
+
+/*
+ * GPIO configuration for SD card control pins
+ */
+&gpio1 {
+	status = "okay";
+};

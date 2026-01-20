@@ -1,0 +1,50 @@
+# Custom SD SPI SDMMC Driver
+#
+# Copyright (c) 2024, Custom Driver Module
+# SPDX-License-Identifier: Apache-2.0
+
+config CUSTOM_SD_SPI_SDMMC
+	bool "Custom SD/MMC Card driver over SPI"
+	default y
+	depends on DT_HAS_ZEPHYR_CUSTOM_SD_SPI_SDMMC_ENABLED
+	select SPI
+	select DISK_ACCESS
+	select DISK_DRIVER_SDMMC
+	select RING_BUFFER
+	help
+	  Enable a custom SD/MMC Card driver that uses SPI interface.
+
+	  This driver supports standard SD 2.0 protocol and can be used
+	  with SDHC cards up to 32GB capacity.
+
+	  The driver is designed for low-power embedded applications like
+	  audio recording devices where SD card is used for persistent storage.
+
+config CUSTOM_SD_SPI_SDMMC_SPI_CLK_FREQ
+	int "SPI clock frequency in Hz"
+	default 25000000
+	depends on CUSTOM_SD_SPI_SDMMC
+	help
+	  SPI clock frequency for SD card communication.
+
+	  Standard SD cards support up to 25MHz in SPI mode.
+	  Lower frequencies can be used for power optimization.
+
+config CUSTOM_SD_SPI_SDMMC_SPI_CLK_FREQ_INIT
+	int "SPI initialization clock frequency in Hz"
+	default 400000
+	depends on CUSTOM_SD_SPI_SDMMC
+	help
+	  SPI clock frequency used during SD card initialization.
+
+	  SD cards require low clock frequency (<400kHz) during
+	  initialization sequence.
+
+config CUSTOM_SD_SPI_SDMMC_USE_DMA
+	bool "Use DMA for data transfers"
+	default y
+	depends on CUSTOM_SD_SPI_SDMMC && SPI_NRFX
+	help
+	  Enable DMA support for SD card data transfers.
+
+	  Using DMA reduces CPU overhead and improves power efficiency.

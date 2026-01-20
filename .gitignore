@@ -1,0 +1,27 @@
+# Zephyr / nRF Connect SDK build outputs
+**/build/
+**/build_*/
+**/build*/
+**/_sysbuild/
+
+# CMake / Ninja
+**/CMakeCache.txt
+**/CMakeFiles/
+**/build.ninja
+**/.ninja_deps
+**/.ninja_log
+**/compile_commands.json
+
+# Python
+**/__pycache__/
+**/*.pyc
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Local-only/proprietary docs and scratchpads
+/document/

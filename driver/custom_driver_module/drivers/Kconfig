@@ -1,0 +1,4 @@
+menu "Drivers"
+rsource "display/Kconfig"
+rsource "storage/Kconfig"
+endmenu

@@ -1,0 +1,58 @@
+# 文件: c:/ncs/v3.2.1/l7_e1/custom_driver_module/dts/bindings/display/solomon,ch1115.yaml
+
+description: Solomon CH1115 compatible OLED display
+
+compatible: "solomon,ch1115"
+
+include: i2c-device.yaml
+
+properties:
+  width:
+    type: int
+    required: true
+    description: Width in pixels of the display
+
+  height:
+    type: int
+    required: true
+    description: Height in pixels of the display
+
+  segment-offset:
+    type: int
+    default: 0
+    description: Offset of the first segment from the left
+
+  page-offset:
+    type: int
+    default: 0
+    description: Offset of the first page from the top
+
+  display-offset:
+    type: int
+    default: 0
+    description: Display offset
+
+  multiplex-ratio:
+    type: int
+    default: 63
+    description: Multiplex ratio
+
+  segment-remap:
+    type: int
+    default: 0
+    description: Segment remap
+
+  com-invdir:
+    type: int
+    default: 0
+    description: COM output scan direction
+
+  prechargep:
+    type: int
+    default: 0x22
+    description: Pre-charge period
+
+  reset-gpios:
+    type: compound
+    required: false
+    description: Reset GPIO pin

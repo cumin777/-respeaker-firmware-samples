@@ -1,0 +1,10 @@
+# Custom Storage Drivers
+#
+# Copyright (c) 2024, Custom Driver Module
+# SPDX-License-Identifier: Apache-2.0
+
+menu "Custom Storage Drivers"
+
+rsource "custom_sd_spi_sdmmc/Kconfig"
+
+endmenu

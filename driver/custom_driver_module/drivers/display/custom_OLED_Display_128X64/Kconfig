@@ -1,0 +1,9 @@
+config CUSTOM_OLED_DISPLAY_128X64
+	bool "Custom CH1115 OLED display driver"
+	default y
+	depends on DT_HAS_SOLOMON_CH1115_ENABLED
+	select I2C
+	select DISPLAY
+	help
+	  Enable a custom CH1115-based OLED display driver.
+	  Note: despite the symbol name, this project targets an 88x48 I2C OLED.

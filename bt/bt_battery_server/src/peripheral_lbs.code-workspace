@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../home/cumin/ncs/peripheral_lbs"
+		},
+		{
+			"name": "l2_e1",
+			"path": "../../../l2/l2_e1"
+		},
+		{
+			"name": "l2_e2",
+			"path": "../../../l2/l2_e2"
+		},
+		{
+			"name": "l2_e3",
+			"path": "../../../l2/l2_e3"
+		},
+		{
+			"name": "l3_e1",
+			"path": "../../../l3/l3_e1"
+		},
+		{
+			"name": "l3_e2",
+			"path": "../../../l3/l3_e2"
+		},
+		{
+			"name": "l4_e1",
+			"path": ".."
+		},
+		{
+			"name": "l4_e2",
+			"path": "../../l4_e2"
+		}
+	],
+	"settings": {}
+}

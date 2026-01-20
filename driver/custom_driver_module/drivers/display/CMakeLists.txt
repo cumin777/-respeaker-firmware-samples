@@ -1,0 +1,1 @@
+add_subdirectory_ifdef(CONFIG_CUSTOM_OLED_DISPLAY_128X64 custom_OLED_Display_128X64)
