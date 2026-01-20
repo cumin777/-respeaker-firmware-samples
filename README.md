@@ -15,10 +15,9 @@ Respeaker 初始示例代码仓库（基于 Nordic nRF Connect SDK / Zephyr）�
 
 在 NCS 环境（已安装 west/Zephyr 工具链）下，例如：
 
-- Wi‑Fi SoftAP：`west build -p -b <board> wifi/wifi_softAP`
-- PM Demo：`west build -p -b nrf5340dk_nrf5340_cpuapp pm`
+vscode for nrf，添加应用程序 build
 
-不同示例可能需要不同开发板/Shield（例如 Wi‑Fi 相关需要对应 Wi‑Fi 硬件与配置）。
+大部分示例适用于nrf5340dk，wifi示例适用于nrf7002dk
 
 ## Git 说明
 
