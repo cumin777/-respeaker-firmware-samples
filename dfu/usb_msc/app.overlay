@@ -1,0 +1,23 @@
+/ {
+	zephyr,flash-disk {
+		compatible = "zephyr,flash-disk";
+		/* Back MSC with external QSPI NOR. */
+		partition = <&qspi_msc_partition>;
+		disk-name = "QSPI";
+		cache-size = <4096>;
+	};
+};
+
+&mx25r64 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		/* Entire 8 MiB QSPI device (erase-aligned at 64 KiB). */
+		qspi_msc_partition: partition@0 {
+			label = "qspi_msc";
+			reg = <0x00000000 0x00800000>;
+		};
+	};
+};
