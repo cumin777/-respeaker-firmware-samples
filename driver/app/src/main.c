@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include "button.h"
+
 /* Keep FPS stress test quiet (results are shown on-screen). */
 LOG_MODULE_REGISTER(l7_e1_lvgl, LOG_LEVEL_ERR);
 
@@ -195,7 +197,8 @@ static void create_ui(void)
 /* ----------------------- Recording pen UI (LVGL demo) ----------------------- */
 
 enum ui_scene {
-	UI_SCENE_INFO = 0,
+	UI_SCENE_BLACK = 0,
+	UI_SCENE_INFO,
 	UI_SCENE_STANDBY_MUTE,
 	UI_SCENE_START_RECORDING,
 	UI_SCENE_RECORDING_MUTE,
@@ -253,6 +256,7 @@ struct ui_ctx {
 	uint32_t scene_start_ms;
 	uint32_t battery_pct;
 	bool charging;
+	bool info_enh_mode;
 	bool start_rec_switched;
 };
 
@@ -348,6 +352,16 @@ static void ui_hide_all(struct ui_ctx *ui)
 	lv_obj_add_flag(ui->info_cont, LV_OBJ_FLAG_HIDDEN);
 	lv_obj_add_flag(ui->mute_cont, LV_OBJ_FLAG_HIDDEN);
 	lv_obj_add_flag(ui->rec_cont, LV_OBJ_FLAG_HIDDEN);
+}
+
+static void ui_stop_timers(struct ui_ctx *ui);
+
+static void ui_anim_black(struct ui_ctx *ui)
+{
+	ui_hide_all(ui);
+	ui_stop_timers(ui);
+	/* Ensure the screen stays black. */
+	lv_obj_invalidate(lv_screen_active());
 }
 
 static void ui_stop_timers(struct ui_ctx *ui)
@@ -486,12 +500,9 @@ static void ui_anim_info_page(struct ui_ctx *ui)
 	ui_stop_timers(ui);
 	lv_obj_clear_flag(ui->info_cont, LV_OBJ_FLAG_HIDDEN);
 
-	/* Fake dynamic status updates to demonstrate UI. */
-	ui->battery_pct = (ui->battery_pct + 1) % 101;
-	ui->charging = (ui->battery_pct < 20) ? true : ui->charging;
-	if (ui->battery_pct > 95) {
-		ui->charging = false;
-	}
+	/* Static status indicator page (no animations, no state cycling). */
+	ui->battery_pct = 100;
+	ui->charging = false;
 
 	/* Battery fill (no percentage text) */
 	/* New battery geometry uses a fixed 10px inner width. */
@@ -502,23 +513,15 @@ static void ui_anim_info_page(struct ui_ctx *ui)
 	}
 	lv_obj_set_width(ui->bat_fill, (int)fill_w);
 
-	/* Charging indicator (simple + cross) */
-	if (ui->charging) {
-		lv_obj_clear_flag(ui->bat_charge_a, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_clear_flag(ui->bat_charge_b, LV_OBJ_FLAG_HIDDEN);
-		dot_blink_once(ui->bat_charge_a);
-	} else {
-		lv_obj_add_flag(ui->bat_charge_a, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_add_flag(ui->bat_charge_b, LV_OBJ_FLAG_HIDDEN);
-	}
+	/* Charging indicator hidden on static page */
+	lv_obj_add_flag(ui->bat_charge_a, LV_OBJ_FLAG_HIDDEN);
+	lv_obj_add_flag(ui->bat_charge_b, LV_OBJ_FLAG_HIDDEN);
 
-	/* Wireless icon cycles: disconnected -> connected -> BT tx -> WiFi tx */
-	uint32_t phase = (k_uptime_get_32() / 2500U) % 4U;
-	ui_icon_set_wire_state(ui, phase);
+	/* Wireless: disconnected */
+	ui_icon_set_wire_state(ui, 0);
 
-	/* Record mode icon: enhanced vs normal (icon-only) */
-	bool enh = (((k_uptime_get_32() / 5000U) % 2U) == 0U);
-	if (enh) {
+	/* Mode: normal/enhanced (toggled by double-press on INFO page) */
+	if (ui->info_enh_mode) {
 		lv_obj_add_flag(ui->mode_normal, LV_OBJ_FLAG_HIDDEN);
 		lv_obj_clear_flag(ui->mode_enh, LV_OBJ_FLAG_HIDDEN);
 	} else {
@@ -526,13 +529,8 @@ static void ui_anim_info_page(struct ui_ctx *ui)
 		lv_obj_add_flag(ui->mode_enh, LV_OBJ_FLAG_HIDDEN);
 	}
 
-	/* Pending audio (icon-only), blink when present */
-	bool pending = (((k_uptime_get_32() / 1000U) % 2U) == 0U);
-	if (pending) {
-		lv_obj_clear_flag(ui->pending_icon, LV_OBJ_FLAG_HIDDEN);
-	} else {
-		lv_obj_add_flag(ui->pending_icon, LV_OBJ_FLAG_HIDDEN);
-	}
+	/* Pending audio: none */
+	lv_obj_add_flag(ui->pending_icon, LV_OBJ_FLAG_HIDDEN);
 }
 
 static void ui_anim_standby_mute(struct ui_ctx *ui)
@@ -629,6 +627,9 @@ static void ui_scene_enter(struct ui_ctx *ui, enum ui_scene scene)
 	ui->scene_start_ms = k_uptime_get_32();
 
 	switch (scene) {
+	case UI_SCENE_BLACK:
+		ui_anim_black(ui);
+		break;
 	case UI_SCENE_INFO:
 		ui_anim_info_page(ui);
 		break;
@@ -654,20 +655,50 @@ static void ui_tick_cb(lv_timer_t *t)
 {
 	LV_UNUSED(t);
 	struct ui_ctx *ui = &g_ui;
-	uint32_t now = k_uptime_get_32();
-	uint32_t elapsed = now - ui->scene_start_ms;
 
-	/* Keep INFO page widgets dynamic while visible. */
-	if (ui->scene == UI_SCENE_INFO) {
-		ui_anim_info_page(ui);
-	}
-
-	/* UI_SCENE_START_RECORDING now keeps the scrolling bars for the whole scene. */
-
-	/* Scene advance: 10s per scene */
-	if (elapsed >= 10000U) {
-		enum ui_scene next = (ui->scene == UI_SCENE_INFO) ? UI_SCENE_START_RECORDING : UI_SCENE_INFO;
-		ui_scene_enter(ui, next);
+	/* Poll button events and drive UI. */
+	button_event_t evt;
+	while (button_get_event_no_wait(&evt) == 0) {
+		switch (evt) {
+		case BUTTON_EVENT_SHORT_PRESS:
+			/*
+			 * BLACK: short press -> INFO
+			 * INFO: ignored
+			 * RECORDING: ignored
+			 */
+			if (ui->scene == UI_SCENE_BLACK) {
+				ui_scene_enter(ui, UI_SCENE_INFO);
+			}
+			break;
+		case BUTTON_EVENT_DOUBLE_PRESS:
+			/*
+			 * BLACK: double press -> INFO
+			 * INFO: toggle normal/enhanced and refresh UI
+			 * RECORDING: ignored
+			 */
+			if (ui->scene == UI_SCENE_BLACK) {
+				ui_scene_enter(ui, UI_SCENE_INFO);
+			} else if (ui->scene == UI_SCENE_INFO) {
+				ui->info_enh_mode = !ui->info_enh_mode;
+				ui_anim_info_page(ui);
+				lv_obj_invalidate(ui->info_cont);
+			}
+			break;
+		case BUTTON_EVENT_LONG_PRESS:
+			/*
+			 * BLACK: long press -> RECORDING
+			 * INFO: long press -> RECORDING
+			 * RECORDING: long press -> INFO
+			 */
+			if (ui->scene == UI_SCENE_START_RECORDING) {
+				ui_scene_enter(ui, UI_SCENE_INFO);
+			} else if (ui->scene == UI_SCENE_BLACK || ui->scene == UI_SCENE_INFO) {
+				ui_scene_enter(ui, UI_SCENE_START_RECORDING);
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 
@@ -1062,7 +1093,8 @@ static int ui_create_recording_demo(struct ui_ctx *ui)
 	lv_obj_add_flag(ui->rec_mute_label, LV_OBJ_FLAG_HIDDEN);
 
 	ui->battery_pct = 87;
-	ui->charging = true;
+	ui->charging = false;
+	ui->info_enh_mode = false;
 	ui->start_rec_switched = false;
 
 	ui_hide_all(ui);
@@ -1086,7 +1118,7 @@ int main(void)
 	 */
 	(void)display_set_pixel_format(display_dev, PIXEL_FORMAT_MONO10);
 
-	LOG_INF("Starting LVGL test on CH1115 (88x48)");
+	LOG_INF("Starting LVGL app on CH1115 (88x48)");
 
 	/*
 	 * Keep the original FPS stress test code, but do not run it here.
@@ -1098,6 +1130,12 @@ int main(void)
 		return 0;
 	}
 
+	ret = button_init();
+	if (ret != 0) {
+		LOG_ERR("Button init failed: %d", ret);
+		return 0;
+	}
+
 	(void)display_blanking_off(display_dev);
 	/* Max contrast is noticeably higher power on OLED. */
 	(void)display_set_contrast(display_dev, 0x7F);
@@ -1106,10 +1144,11 @@ int main(void)
 
 	lv_timer_handler();
 
-	ui_scene_enter(&g_ui, UI_SCENE_INFO);
+	/* Default behavior: black screen, no animations. */
+	ui_scene_enter(&g_ui, UI_SCENE_BLACK);
 	lv_obj_invalidate(lv_screen_active());
 	lv_timer_handler();
-	g_ui.tick_timer = lv_timer_create(ui_tick_cb, 100, &g_ui);
+	g_ui.tick_timer = lv_timer_create(ui_tick_cb, 50, &g_ui);
 
 	while (1) {
 		/* Drive LVGL timers/animations. */

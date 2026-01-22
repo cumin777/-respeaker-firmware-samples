@@ -1,0 +1,7 @@
+menuconfig CUSTOM_GPIO_BUTTON_GESTURE
+	bool "Custom GPIO button gesture driver"
+	default y
+	depends on DT_HAS_RESPEAKER_GPIO_BUTTON_GESTURE_ENABLED
+	select GPIO
+	help
+	  Provides a GPIO-backed button gesture device (single/double/long).

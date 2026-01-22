@@ -32,6 +32,21 @@
 	chosen {
 		zephyr,display = &oled;
 	};
+
+	button_gesture0: button-gesture0 {
+		compatible = "respeaker,gpio-button-gesture";
+		/* nRF5340DK Button 1 (SW0). */
+		gpios = <&gpio0 23 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+		debounce-ms = <20>;
+		tap-threshold-ms = <300>;
+		double-click-ms = <600>;
+		long-press-ms = <1000>;
+	};
+
+	aliases {
+		/* App-facing alias for the gesture device (not the raw gpio-keys node). */
+		appbtng = &button_gesture0;
+	};
 };
 
 &pinctrl {

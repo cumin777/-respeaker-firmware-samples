@@ -1,0 +1,31 @@
+description: Respeaker GPIO button gesture detector
+
+compatible: "respeaker,gpio-button-gesture"
+
+include: base.yaml
+
+properties:
+  gpios:
+    type: phandle-array
+    required: true
+    description: Button GPIO.
+
+  debounce-ms:
+    type: int
+    default: 20
+    description: Debounce delay after an edge interrupt.
+
+  tap-threshold-ms:
+    type: int
+    default: 300
+    description: Max press duration to be treated as a tap candidate (else single on release).
+
+  double-click-ms:
+    type: int
+    default: 600
+    description: Max time between two taps (release-to-release) to be treated as a double click.
+
+  long-press-ms:
+    type: int
+    default: 1000
+    description: Press-and-hold duration to emit a long press.
