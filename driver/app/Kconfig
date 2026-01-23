@@ -1,0 +1,27 @@
+mainmenu "Respeaker Application Configuration"
+
+# This application provides a top-level Kconfig file, which Zephyr will treat
+# as KCONFIG_ROOT. Pull in Zephyr's full configuration tree so standard symbols
+# (GPIO, LOG, CONSOLE, etc.) are defined.
+source "$(ZEPHYR_BASE)/Kconfig.zephyr"
+
+menu "Respeaker app"
+
+choice RESPEAKER_APP_VARIANT
+	prompt "App variant"
+	default RESPEAKER_APP_VARIANT_LVGL
+	help
+	  Select which app entry point to build.
+
+config RESPEAKER_APP_VARIANT_LVGL
+	bool "LVGL UI (src/main.c)"
+
+config RESPEAKER_APP_VARIANT_SIMPLE_UI
+	bool "Simple UI (simple_ui.c)"
+
+config RESPEAKER_APP_VARIANT_RTC_DEMO
+	bool "RTC demo (rtc_demo.c)"
+
+endchoice
+
+endmenu

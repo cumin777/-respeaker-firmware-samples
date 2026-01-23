@@ -25,7 +25,18 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(app LANGUAGES C)
 
-target_sources(app PRIVATE
-  src/main.c
-  src/button.c
-)
+if(CONFIG_RESPEAKER_APP_VARIANT_SIMPLE_UI)
+  target_sources(app PRIVATE
+    simple_ui.c
+    src/button.c
+  )
+elseif(CONFIG_RESPEAKER_APP_VARIANT_RTC_DEMO)
+  target_sources(app PRIVATE
+    rtc_demo.c
+  )
+else()
+  target_sources(app PRIVATE
+    src/main.c
+    src/button.c
+  )
+endif()

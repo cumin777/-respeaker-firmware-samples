@@ -1,8 +1,8 @@
 &i2c1 {
-    status = "okay";
-    pinctrl-0 = <&i2c1_default>;
+	status = "okay";
+	pinctrl-0 = <&i2c1_default>;
 	pinctrl-1 = <&i2c1_sleep>;
-    pinctrl-names = "default", "sleep";
+	pinctrl-names = "default", "sleep";
 	clock-frequency = <400000>;
 
 	/*
@@ -13,19 +13,20 @@
 	zephyr,flash-buf-max-size = <96>;
     
 	oled: ch1115@3c {
-        compatible =  "solomon,ch1115";
-        reg = <0x3c>;
-        width = <88>;
-        height = <48>;
-        segment-offset = <0>;
-        page-offset = <0>;
+		compatible = "solomon,ch1115";
+		reg = <0x3c>;
+		width = <88>;
+		height = <48>;
+		segment-offset = <0>;
+		page-offset = <0>;
 		/* Matches vendor init sequence for 0.50\" 88x48 modules */
 		display-offset = <0x38>;
 		multiplex-ratio = <47>;
 		segment-remap = <0>;
 		com-invdir = <0>;
-        prechargep = <0x22>;
-    };
+		prechargep = <0x22>;
+	};
+
 };
 
 / {
@@ -44,24 +45,25 @@
 	};
 
 	aliases {
-		/* App-facing alias for the gesture device (not the raw gpio-keys node). */
-		appbtng = &button_gesture0;
+		/* App-facing alias for the gesture device (not a raw gpio-keys node). */
+		appbutton = &button_gesture0;
 	};
 };
 
 &pinctrl {
 	/omit-if-no-ref/ i2c1_default: i2c1_default {
-		group1  {
+		group1 {
 			psels = <NRF_PSEL(TWIM_SCL, 1, 14)>,
 					<NRF_PSEL(TWIM_SDA, 1, 15)>;
 		};
 	};
 
 	/omit-if-no-ref/ i2c1_sleep: i2c1_sleep {
-		group1  {
+		group1 {
 			psels = <NRF_PSEL(TWIM_SCL, 1, 14)>,
 					<NRF_PSEL(TWIM_SDA, 1, 15)>;
 			low-power-enable;
 		};
 	};
+
 };
